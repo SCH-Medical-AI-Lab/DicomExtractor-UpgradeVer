@@ -1,6 +1,7 @@
 package MedicalDicom.MetaData_Extraction.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +25,7 @@ public class DicomConversionEntity {
 
     private String status;
 
+    @JsonIgnore //Json으로 바꿀 때는 이 변수는 무시하고 쳐다보지 말라고 해야 한다. 그렇지 않으면 자식이 부모를 보고 다시 부모가 자식을 보는 순환참조가 일어난다.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "origin_id",
                 foreignKey = @ForeignKey(name = "fk_conversion_to_origin"))

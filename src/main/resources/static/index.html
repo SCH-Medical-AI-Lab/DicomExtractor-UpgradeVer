@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>의료 DICOM 변환기</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        h2 { color: #333; text-align: center; }
+        .upload-box { border: 2px dashed #007bff; padding: 30px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        input[type="file"] { display: none; }
+        .file-label { background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-block; }
+        .file-label:hover { background: #0056b3; }
+        #fileName { margin-top: 15px; font-weight: bold; color: #555; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #218838; }
+        #status { margin-top: 20px; padding: 10px; border-radius: 5px; display: none; text-align: center; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏥 DICOM 압축 파일 업로드</h2>
+
+    <div class="upload-box">
+        <label for="fileInput" class="file-label">폴더에서 ZIP 파일 선택</label>
+        <input type="file" id="fileInput" accept=".zip">
+        <div id="fileName">선택된 파일이 없습니다.</div>
+    </div>
+
+    <button id="uploadBtn">서버로 전송 및 분석 시작</button>
+
+    <div id="status"></div>
+
+    <button id="goSearchBtn" style="display: none; background: #17a2b8; margin-top: 15px;">🔍 검색 페이지로 이동하기</button>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusDiv = document.getElementById('status');
+    const goSearchBtn = document.getElementById('goSearchBtn'); // 🌟 추가된 부분 2: 자바스크립트로 버튼 가져오기
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            fileNameDisplay.textContent = "선택된 파일: " + this.files[0].name;
+        } else {
+            fileNameDisplay.textContent = "선택된 파일이 없습니다.";
+        }
+    });
+
+    uploadBtn.addEventListener('click', function() {
+        if (fileInput.files.length === 0) {
+            alert("먼저 ZIP 파일을 선택해주세요!");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        statusDiv.style.display = "block";
+        statusDiv.className = "";
+        statusDiv.textContent = "⏳ 서버로 전송 중... (파이썬 분석 및 DB 저장)";
+
+        // 업로드 버튼 누를 때 혹시 켜져 있던 이동 버튼 숨기기
+        goSearchBtn.style.display = "none";
+
+        fetch('/dicom/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("서버 에러 발생");
+            }
+            return response.text();
+        })
+        .then(data => {
+            statusDiv.className = "success";
+            statusDiv.textContent = "✅ 성공: " + data;
+
+            // 🌟 추가된 부분 3: 업로드 대성공! 이제 이동 버튼을 화면에 짠! 하고 보여줌
+            goSearchBtn.style.display = "block";
+        })
+        .catch(error => {
+            statusDiv.className = "error";
+            statusDiv.textContent = "❌ 실패: " + error.message;
+        });
+    });
+
+    // 🌟 추가된 부분 4: 이동 버튼을 눌렀을 때 search.html 로 넘어가게 하는 마법
+    goSearchBtn.addEventListener('click', function() {
+        window.location.href = '/search.html';
+    });
+</script>
+
+</body>
+</html>
