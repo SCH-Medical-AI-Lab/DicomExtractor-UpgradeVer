@@ -123,7 +123,8 @@ public class DicomExtractorService {
 
         // 1. 조립하기 (Specification 엮기)
         // 조건이 비어있으면 자동으로 해당 조건은 무시하고 쿼리를 똑똑하게 조립함.
-        Specification<DicomOriginEntity> spec = Specification.where(DicomSpecification.isT1Axial(isT1Axial))
+        Specification<DicomOriginEntity> spec = Specification.where(DicomSpecification.fetchConversions())
+                .and(DicomSpecification.isT1Axial(isT1Axial))
                 .and(DicomSpecification.hasModalityIn(modalities))
                 .and(DicomSpecification.ageBetween(minAge, maxAge));
 
@@ -131,6 +132,7 @@ public class DicomExtractorService {
         List<DicomOriginEntity> origins = dicomOriginRepository.findAll(spec);
 
         // 3. 검색된 엔티티들을 프론트엔드에 보낼 안전한 DTO 상자로 변환. 이렇게 안하면 순환참조 일어나서 WriteException일어남
+        // 즉 방법이 2가지이다. @JsonIgnore을 하던지, DTO를 만들어서 여기에 넣던지. 그런데 보통 후자가 선호된다.
         List<DicomSearchResultDto> resultList = new ArrayList<>();
 
         for (DicomOriginEntity origin : origins) {
