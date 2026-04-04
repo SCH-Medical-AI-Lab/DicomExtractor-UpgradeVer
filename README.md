@@ -54,7 +54,6 @@ uvicorn main:app --reload --port 8000
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/dcm_metadata_extraction
 spring.datasource.username=root
-spring.datasource.password=test1234
 
 spring.jpa.hibernate.ddl-auto=update
 
